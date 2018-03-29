@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -e
+set -x
+
+MIME_TYPE=$(file -b input.blob --mime-type)
+INPUT_FILENAME=""
+THUMBNAIL_FILENAME=0-thumbnail.png
+case "$MIME_TYPE" in
+  image/png)
+    INPUT_FILENAME=input.png
+    ;;
+  image/jpeg)
+    INPUT_FILENAME=input.jpg
+    THUMBNAIL_FILENAME=0-thumbnail.jpg
+    ;;
+  **)
+    echo "Unhandled image type: $MIME_TYPE"
+    exit 0 # We finished successfully, outputting a great error message
+    ;;
+esac
+
+LANG_2LETTER_JSON=$(echo "$1" | jq '.languageCode')
+case "$LANG_2LETTER_JSON" in
+  '"ar"') LANG_3LETTER="ara" ;;
+  '"ca"') LANG_3LETTER="cat" ;;
+  '"de"') LANG_3LETTER="deu" ;;
+  '"en"') LANG_3LETTER="eng" ;;
+  '"fr"') LANG_3LETTER="fra" ;;
+  '"it"') LANG_3LETTER="ita" ;;
+  '"nl"') LANG_3LETTER="nld" ;;
+  '"no"') LANG_3LETTER="nor" ;;
+  '"pt"') LANG_3LETTER="por" ;;
+  '"ru"') LANG_3LETTER="rus" ;;
+  '"es"') LANG_3LETTER="spa" ;;
+  '"sv"') LANG_3LETTER="swe" ;;
+  **)
+    echo "Unhandled languageCode: $LANG_2LETTER"
+    exit 0 # We finished successfully, outputting a great error message
+    ;;
+esac
+
+mv input.blob $INPUT_FILENAME
+convert $INPUT_FILENAME -thumbnail 700x700\> $THUMBNAIL_FILENAME
+
+if [ "$(echo "$1" | jq '.wantOcr')" = 'true' ]; then
+  tesseract -l "$LANG_3LETTER" --psm 1 $INPUT_FILENAME 0 pdf txt
+  echo "$1" | jq '{ filename: .filename, languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, contentType: "application/pdf", metadata: (.metadata + { "isFromOcr": true }) }' > 0.json
+else
+  pdflatex -halt-on-error -interation=errorstopmode /app/0.latex >/dev/null
+  touch 0.txt
+  echo "$1" | jq '{ filename: .filename, languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, contentType: "application/pdf", metadata: .metadata }' > 0.json
+fi
