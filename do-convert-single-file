@@ -44,10 +44,12 @@ mv input.blob $INPUT_FILENAME
 convert $INPUT_FILENAME -thumbnail 700x700\> $THUMBNAIL_FILENAME
 
 if [ "$(echo "$1" | jq '.wantOcr')" = 'true' ]; then
-  tesseract -l "$LANG_3LETTER" --psm 1 $INPUT_FILENAME 0 pdf txt
   echo "$1" | jq '{ filename: .filename, languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, contentType: "application/pdf", metadata: (.metadata + { "isFromOcr": true }) }' > 0.json
+  # exec, so SIGKILL destroys us
+  exec tesseract -l "$LANG_3LETTER" --psm 1 $INPUT_FILENAME 0 pdf txt
 else
-  pdflatex -halt-on-error -interation=errorstopmode /app/0.latex >/dev/null
   touch 0.txt
   echo "$1" | jq '{ filename: .filename, languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, contentType: "application/pdf", metadata: .metadata }' > 0.json
+  # exec, so SIGKILL destroys us
+  exec pdflatex -halt-on-error -interation=errorstopmode /app/0.latex >/dev/null
 fi
