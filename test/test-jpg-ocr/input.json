@@ -1,0 +1,10 @@
+{
+  "filename": "foo/input.jpg",
+  "contentType": "application/octet-stream",
+  "languageCode": "en",
+  "metadata": {
+    "foo": "bar"
+  },
+  "wantOcr": true,
+  "wantSplitByPage": true
+}

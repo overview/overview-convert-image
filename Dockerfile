@@ -1,10 +1,8 @@
-FROM overview/overview-converter-framework:0.0.3 AS framework
-# multi-stage build
-
-FROM debian:stretch-slim AS build
+FROM debian:stretch-slim AS os
 RUN set -x \
   && apt-get update \
   && apt-get install -y --no-install-recommends \
+    file \
     imagemagick \
     jq \
     tesseract-ocr \
@@ -20,14 +18,24 @@ RUN set -x \
     tesseract-ocr-rus \
     tesseract-ocr-spa \
     tesseract-ocr-swe \
-    texlive-base \
-    texlive-latex-extra \
+    python3-pip \
+    python3-setuptools \
+  && pip3 install img2pdf \
   && apt-get clean -y \
   && rm -rf /var/cache/debconf/* /var/lib/apt/lists/* /var/log/* /tmp/* /var/tmp/*
-
 WORKDIR /app
-# The framework provides the main executable
+
+FROM overview/overview-convert-framework:0.0.4 AS framework
+# multi-stage build
+
+FROM os AS base
 COPY --from=framework /app/run /app/run
 COPY --from=framework /app/convert-single-file /app/convert
-COPY ./0.latex /app/0.latex
 COPY ./do-convert-single-file /app/do-convert-single-file
+
+FROM base AS test
+COPY --from=framework /app/test-convert-single-file /app/
+COPY test/ /app/test/
+RUN [ "/app/test-convert-single-file" ]
+
+FROM base AS production

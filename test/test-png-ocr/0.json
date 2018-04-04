@@ -1,0 +1,11 @@
+{
+  "filename": "foo/input.png",
+  "languageCode": "en",
+  "wantOcr": false,
+  "wantSplitByPage": false,
+  "contentType": "application/pdf",
+  "metadata": {
+    "foo": "bar",
+    "isFromOcr": true
+  }
+}

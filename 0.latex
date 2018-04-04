@@ -1,6 +1,0 @@
-\documentclass{standalone}
-\nofiles
-\usepackage{graphicx}
-\begin{document}
-\includegraphics{input}
-\end{document}
