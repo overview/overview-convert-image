@@ -1,4 +1,8 @@
-FROM debian:stretch-slim AS os
+# buster-slim is the first version with Tesseract 4.0.
+# Alpine would be nice, but we already use buster-slim in pdfocr and
+# we want the exact same data files that a user might be expected to
+# use at home
+FROM debian:buster-slim AS os
 RUN set -x \
   && apt-get update \
   && apt-get install -y --no-install-recommends \

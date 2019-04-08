@@ -56,9 +56,16 @@ case "$LANG_2LETTER_JSON" in
     ;;
 esac
 
+# Remove alpha channel, if it exists.
+if [ "$(file input.blob --mime-type --brief)" = "image/png" ]; then
+  mogrify input.blob -background white -alpha remove -alpha off
+fi
+
 if [ "$(echo "$1" | jq '.wantOcr')" = 'true' ]; then
   echo "$1" | jq '{ filename: .filename, languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, contentType: "application/pdf", metadata: (.metadata + { "isFromOcr": true }) }' > 0.json
-  tesseract input.blob 0 -l "$LANG_3LETTER" --psm=1 quiet pdf txt
+  # OMP_THREAD_LIMIT: disable multithreading. Kubernetes is expecting us to
+  # stay on one CPU.
+  OMP_THREAD_LIMIT=1 tesseract input.blob 0 -l "$LANG_3LETTER" --psm 1 quiet pdf txt
   mv 0.pdf 0.blob
 else
   touch 0.txt
