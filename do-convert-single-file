@@ -40,6 +40,7 @@ LANG_2LETTER_JSON=$(echo "$1" | jq '.languageCode')
 case "$LANG_2LETTER_JSON" in
   '"ar"') LANG_3LETTER="ara" ;;
   '"ca"') LANG_3LETTER="cat" ;;
+  '"cs"') LANG_3LETTER="ces" ;;
   '"de"') LANG_3LETTER="deu" ;;
   '"en"') LANG_3LETTER="eng" ;;
   '"fr"') LANG_3LETTER="fra" ;;
@@ -51,7 +52,7 @@ case "$LANG_2LETTER_JSON" in
   '"es"') LANG_3LETTER="spa" ;;
   '"sv"') LANG_3LETTER="swe" ;;
   **)
-    echo "Unhandled languageCode: $LANG_2LETTER"
+    echo "Unhandled languageCode: $LANG_2LETTER_JSON"
     exit 0 # We finished successfully, outputting a great error message
     ;;
 esac
